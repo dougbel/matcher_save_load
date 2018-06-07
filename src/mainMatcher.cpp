@@ -55,6 +55,35 @@ void setLabel(cv::Mat& im, const std::string label, const cv::Point &point)
 	cv::putText(im, label, point, fontface, scale, CV_RGB(255,255,255), thickness, 8);
 }
 
+Rect2i roi;
+Rect2i drawing_roi;
+
+void CallBackFunc(int event, int x, int y, int flags, void* userdata)
+{
+     if  ( event == EVENT_LBUTTONDOWN )
+     {
+	roi.x = x;
+	roi.y = y;
+	drawing_roi.x = x;
+	drawing_roi.y = y;
+     }
+     else if  ( event == EVENT_LBUTTONUP )
+     {
+        roi.width = x - roi.x;
+	roi.height = y - roi.y;
+	cout<< "roi "<<roi.x << " " << roi.y << " " << roi.width <<" " << roi.height << endl;
+     }
+     else if ( event == EVENT_MOUSEMOVE )
+     {
+       if(drawing_roi.x != -1 && drawing_roi.y != -1)
+       {
+	  drawing_roi.width = x - drawing_roi.x;
+	  drawing_roi.height = y - drawing_roi.y;
+	  cout<< "drawing_roi  "<<drawing_roi.x << " " << drawing_roi.y << " " << drawing_roi.width <<" " << drawing_roi.height << endl;
+       }
+
+     }
+}
 
 vector<ImageDescripted>  learnObjects (VideoCapture cap){
 
@@ -81,6 +110,29 @@ vector<ImageDescripted>  learnObjects (VideoCapture cap){
 	}
 	
 	if( key== 'a'){
+	  
+		roi = Rect2i(-1, -1, -1, -1);
+		drawing_roi = Rect2i(-1, -1, -1, -1);
+		namedWindow("cut input", cv::WINDOW_AUTOSIZE);
+		setMouseCallback("cut input", CallBackFunc, NULL);
+		
+		
+		while(!(roi.x != -1 && roi.y != -1 && roi.height !=-1 && roi.width != -1)){
+		   
+		  Mat toDraw = frame.clone();
+		  if(drawing_roi.x != -1 && drawing_roi.y != -1){
+		    rectangle(toDraw,drawing_roi, CV_RGB(255,0,0));
+		  }
+		  imshow("cut input", toDraw);
+		  cvWaitKey(30);
+		}
+		
+		cout << "salida " << (roi.x != -1 && roi.y != -1 && roi.height !=-1 && roi.width != -1) << endl;
+		destroyWindow("cut input");
+		Mat tmp = frame(roi);
+		frame = tmp;
+		imshow("cut input", frame);
+		cvWaitKey(0);
 		
 		f2d = xfeatures2d::SIFT::create();
 		f2d->detect( frame, keypoints );
