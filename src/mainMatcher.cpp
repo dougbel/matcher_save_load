@@ -126,13 +126,12 @@ vector<ImageDescripted>  learnObjects (VideoCapture cap){
 		  imshow("cut input", toDraw);
 		  cvWaitKey(30);
 		}
-		
-		cout << "salida " << (roi.x != -1 && roi.y != -1 && roi.height !=-1 && roi.width != -1) << endl;
 		destroyWindow("cut input");
+		
 		Mat tmp = frame(roi);
 		frame = tmp;
-		imshow("cut input", frame);
-		cvWaitKey(0);
+// 		imshow("cut input", frame);
+// 		cvWaitKey(0);
 		
 		f2d = xfeatures2d::SIFT::create();
 		f2d->detect( frame, keypoints );
@@ -260,11 +259,7 @@ int main(int argc, char *argv[])
 	bool break_while;
 	
 	cap >> frame; 
-	vector<Point2f> obj_corners(4);
-	obj_corners[0] = cvPoint(0,0); 
-	obj_corners[1] = cvPoint( frame.cols, 0 );
-	obj_corners[2] = cvPoint( frame.cols, frame.rows ); 
-	obj_corners[3] = cvPoint( 0, frame.rows );
+	
 	
 	vector<ImageDescripted> scene_objects;
 	
@@ -349,16 +344,22 @@ int main(int argc, char *argv[])
 				if(num_inliers>10){
 					
 					vector<Point2f> scene_corners(4);
+					
+					vector<Point2f> obj_corners(4);
+					obj_corners[0] = cvPoint(0,0); 
+					obj_corners[1] = cvPoint( pattern.getFrame().cols, 0 );
+					obj_corners[2] = cvPoint( pattern.getFrame().cols, pattern.getFrame().rows ); 
+					obj_corners[3] = cvPoint( 0, pattern.getFrame().rows );
 					perspectiveTransform( obj_corners, scene_corners, H);
 					
 // 					cout << " Area: " << contourArea(scene_corners) << std::endl;
 					if(contourArea(scene_corners)>500){
-						setLabel(img_matches, pattern.getName(),scene_corners[0]);
 						//-- Draw lines between the corners (the mapped object in the scene - image_2 )
-						line( img_matches, scene_corners[0], scene_corners[1], CV_RGB(255,0, 0), 4 );
-						line( img_matches, scene_corners[1], scene_corners[2], CV_RGB(255,0, 0), 4 );
-						line( img_matches, scene_corners[2] , scene_corners[3], CV_RGB(255,0, 0), 4 );
-						line( img_matches, scene_corners[3] , scene_corners[0], CV_RGB(255,0, 0), 4 );
+						line( img_matches, scene_corners[0], scene_corners[1], CV_RGB(255,0, 0), 2 );
+						line( img_matches, scene_corners[1], scene_corners[2], CV_RGB(255,0, 0), 2 );
+						line( img_matches, scene_corners[2] , scene_corners[3], CV_RGB(255,0, 0), 2 );
+						line( img_matches, scene_corners[3] , scene_corners[0], CV_RGB(255,0, 0), 2 );
+						setLabel(img_matches, pattern.getName(),scene_corners[0]);
 						
 						int min_x, max_x;
 						float average_y;
